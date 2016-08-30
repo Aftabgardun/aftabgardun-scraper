@@ -20,3 +20,15 @@ class DmozItem(scrapy.Item):
     mail = scrapy.Field()
     photo = scrapy.Field()
 
+class DmozyItem(scrapy.Item):
+    author = scrapy.Field()
+    position = scrapy.Field()
+    keywords = scrapy.Field()
+    homePage = scrapy.Field()
+    coAuthors = scrapy.Field()
+    coAuthorsLink = scrapy.Field()
+    articleTopics = scrapy.Field()
+    articleAuthors = scrapy.Field()
+    articleCitedBy = scrapy.Field()
+    articleYear = scrapy.Field()
+    articleLink = scrapy.Field()
