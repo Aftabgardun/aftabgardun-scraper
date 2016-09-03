@@ -1,6 +1,6 @@
 import scrapy
 import time, random
-from tutorial.items import DmozItem
+from tutorial.items import DmozItem, DmozyArticle
 from scrapy.exporters import JsonItemExporter
 
 starturl = "https://scholar.google.com/citations?view_op=search_authors&mauthors=mohsen+sharifi&hl=en&oi=ao"
@@ -85,8 +85,7 @@ class DmozSpider(scrapy.Spider):
 
         item['articles'] = articles
         del articles
-        
-        print ("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH")
+
         time.sleep(random.randrange(2, 5))
         
         exporter.export_item(item)
