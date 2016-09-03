@@ -1,7 +1,11 @@
 import scrapy
 import time, random
+from urlparse import parse_qs, urlsplit
 from tutorial.items import DmozItem, DmozyArticle
 from scrapy.exporters import JsonItemExporter
+
+global_seen_user = []
+global_seen_paper = []
 
 starturl = "https://scholar.google.com/citations?view_op=search_authors&mauthors=mohsen+sharifi&hl=en&oi=ao"
 baseurl = "https://scholar.google.com"
@@ -40,7 +44,10 @@ class DmozSpider(scrapy.Spider):
         for sel in response.xpath("/html/body//div[@id='gs_bdy']/div[@role='main']//div[@class='gsc_1usr gs_scl']"):
             link = sel.xpath("div[@class='gsc_1usr_photo']/a/@href").extract()[0]
             time.sleep(random.randrange(6, 10))
-            yield scrapy.Request(baseurl + link, callback=self.parse_person, dont_filter=True)
+            linkId = parse_qs(urlsplit(link).query)['user'][0]
+            if linkId not in global_seen_user:
+                global_seen_paper.append(linkId)
+                yield scrapy.Request(baseurl + link, callback=self.parse_person, dont_filter=True)
     
 
     def parse_person(self, response):
@@ -76,11 +83,15 @@ class DmozSpider(scrapy.Spider):
         for art in base.xpath("div[@id='gsc_art']/form/table/tbody/tr"):
             try:
                 link = art.xpath("td[@class='gsc_a_t']/a/@href").extract()[0]
+                name = art.xpath("td[@class='gsc_a_t']/a/text()").extract()[0]
                 articles.append(dict(
-                    name=art.xpath("td[@class='gsc_a_t']/a/text()").extract()[0],
+                    name=name,
                     link=link
                 ))
-                yield scrapy.Request(baseurl + link, callback=self.parse_article, dont_filter=True)
+
+                if (name not in global_seen_paper):
+                    global_seen_paper.append(name)
+                    yield scrapy.Request(baseurl + link, callback=self.parse_article, dont_filter=True)
                 
             except:
                 pass
@@ -109,8 +120,8 @@ class DmozSpider(scrapy.Spider):
 
         for i in base.xpath("div[@id='gsc_table']/div[@class='gs_scl']"):
             try:
-                k = i.xpath("div[@class='gsc_field']/text()").extract()
-                v = i.xpath("div[@class='gsc_value']/text()").extract()
+                k = i.xpath("div[@class='gsc_field']/text()").extract()[0]
+                v = i.xpath("div[@class='gsc_value']/text()").extract()[0]
                 
                 if (k == 'Authors'):
                     item['authors'] = v.split(',')
