@@ -24,45 +24,34 @@ class DmozySpider(scrapy.Spider):
         item['homePage'] = baseInfo.xpath("div[@id='gsc_prf_i']/div[@id='gsc_prf_ivh']/a/@href").extract()[0]
 
         coAuthors = []
-        coAuthorsLink = []
 
         for coAuthor in base.xpath("div[@id='gsc_rsb']/div[@id='gsc_rsb_co']/ul/li"):
             try:
-                coAuthors.append(coAuthor.xpath("a/@href").extract()[0])
-                coAuthorsLink.append(coAuthor.xpath("a/text()").extract()[0])
+                coAuthors.append(dict(
+                    name=coAuthor.xpath("a/text()").extract()[0],
+                    link=coAuthor.xpath("a/@href").extract()[0]
+                ))
 
             except:
                 pass
 
         item['coAuthors'] = coAuthors
-        item['coAuthorsLink'] = coAuthorsLink
+        del coAuthors
 
-        del coAuthorsLink, coAuthors
-
-        cites = []
-        years = []
-        topic = []
-        authors = []
-        link = []
+        articles = []
 
         for art in base.xpath("div[@id='gsc_art']/form/table/tbody/tr"):
             try:
-                cites.append(art.xpath("td[@class='gsc_a_c']/a/text()").extract()[0])
-                years.append(art.xpath("td[@class='gsc_a_y']/span/text()").extract()[0])
-                topic.append(art.xpath("td[@class='gsc_a_t']/a/text()").extract()[0])
-                authors.append(art.xpath("td[@class='gsc_a_t']/div[@class='gs_gray']/text()").extract()[0].split(', '))
-                link.append(art.xpath("td[@class='gsc_a_t']/a/@href").extract()[0])
+                articles.append(dict(
+                    name=art.xpath("td[@class='gsc_a_t']/a/text()").extract()[0],
+                    link=art.xpath("td[@class='gsc_a_t']/a/@href").extract()[0]
+                ))
 
             except:
                 pass
 
-        item['articleTopics'] = topic
-        item['articleAuthors'] = authors
-        item['articleCitedBy'] = cites
-        item['articleYear'] = years
-        item['articleLink'] = link
-
-        del topic, authors, cites, years, link
+        item['articles'] = articles
+        del articles
 
         yield item
         time.sleep(random.randrange(1, 5))
