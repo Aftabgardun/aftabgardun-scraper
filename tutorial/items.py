@@ -17,16 +17,11 @@ class DmozItem(scrapy.Item):
     itemtype = scrapy.Field()
     name = scrapy.Field()
     link = scrapy.Field()
-    desc = scrapy.Field()
     mail = scrapy.Field()
     photo = scrapy.Field()
-
-class DmozyItem(scrapy.Item):
-    itemtype = scrapy.Field()
-    author = scrapy.Field()
-    position = scrapy.Field()
-    keywords = scrapy.Field()
     homePage = scrapy.Field()
+    keywords = scrapy.Field()
+    position = scrapy.Field()
     coAuthors = scrapy.Field()
     articles = scrapy.Field()
 
