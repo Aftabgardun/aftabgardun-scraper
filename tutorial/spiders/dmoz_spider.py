@@ -1,7 +1,11 @@
 import scrapy
 import time, random
+from urlparse import parse_qs, urlsplit
 from tutorial.items import DmozItem, DmozyArticle
 from scrapy.exporters import JsonItemExporter
+
+global_seen_user = []
+global_seen_paper = []
 
 starturl = "https://scholar.google.com/citations?view_op=search_authors&mauthors=mohsen+sharifi&hl=en&oi=ao"
 baseurl = "https://scholar.google.com"
@@ -75,11 +79,15 @@ class DmozSpider(scrapy.Spider):
         for art in base.xpath("div[@id='gsc_art']/form/table/tbody/tr"):
             try:
                 link = art.xpath("td[@class='gsc_a_t']/a/@href").extract()[0]
+                name = art.xpath("td[@class='gsc_a_t']/a/text()").extract()[0]
                 articles.append(dict(
-                    name=art.xpath("td[@class='gsc_a_t']/a/text()").extract()[0],
+                    name=name,
                     link=link
                 ))
-                yield scrapy.Request(baseurl + link, callback=self.parse_article, dont_filter=True)
+
+                if (name not in global_seen_paper):
+                    global_seen_paper.append(name)
+                    yield scrapy.Request(baseurl + link, callback=self.parse_article, dont_filter=True)
                 
             except:
                 pass
