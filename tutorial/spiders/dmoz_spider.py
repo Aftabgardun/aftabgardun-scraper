@@ -103,7 +103,45 @@ class DmozSpider(scrapy.Spider):
         item['articles'] = articles
         del articles
         print ("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH")
-        time.sleep(random.randrange(1, 5))
+        time.sleep(random.randrange(2, 5))
         
         exporter.export_item(item)
         return item
+        
+    
+    
+    def parse_article(self, response):
+        time.sleep(random.randrange(2, 5))
+        item = DmozyArticle()
+        base = response.xpath("/html/body/div[@id='gs_top']/div[@id='gs_bdy']/div[@id='gs_ccl']/div[@id='gsc_ccl']")
+
+        item['name'] = base.xpath("div[@id='gsc_title_wrapper']/div[@id='gsc_title']/a/text()").extract()[0]
+        try:
+            item['link'] = base.xpath("div[@id='gsc_title_wrapper']/div[@id='gsc_title_gg']/div/a/@href").extract()[0]
+
+        except:
+            pass
+
+        for i in base.xpath("div[@id='gsc_table']/div[@class='gs_scl']"):
+            try:
+                k = i.xpath("div[@class='gsc_field']/text()").extract()
+                v = i.xpath("div[@class='gsc_value']/text()").extract()
+
+                if (k == 'Authors'):
+                    item['authors'] = v.split(',')
+
+                elif (k == 'Publication date'):
+                    item['date'] = v
+
+                elif (k == 'Description'):
+                    item['description'] = k
+
+                elif (k == 'Publisher'):
+                    item['publisher'] = k
+
+            except:
+                pass
+        
+        item['itemtype'] = 'Paper'
+        exporter.export_item(item)
+        yield item
