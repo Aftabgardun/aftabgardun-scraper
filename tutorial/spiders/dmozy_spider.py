@@ -1,6 +1,6 @@
 import scrapy
 import time, random
-from tutorial.items import DmozyItem
+#from tutorial.items import DmozyItem
 
 starturl = "https://scholar.google.com/citations?user=lboyQG8AAAAJ&hl=en&oi=ao"
 

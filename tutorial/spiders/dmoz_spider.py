@@ -24,7 +24,7 @@ class DmozSpider(scrapy.Spider):
     allowed_domains = ["dmoz.org"]
     start_urls = [
         starturl
-    ] + urls
+    ]
     
     def closed(self, reason):
         exporter.finish_exporting()
@@ -49,7 +49,7 @@ class DmozSpider(scrapy.Spider):
         baseInfo = base.xpath("div[@class='gsc_lcl']/div[@id='gsc_prf']")
         item['itemtype'] = "Person"
         item['photo'] = baseInfo.xpath("div[@id='gsc_prf_pu']/a/img/@src").extract()[0]
-        item['author'] = baseInfo.xpath("div[@id='gsc_prf_i']/div[@id='gsc_prf_in']/text()").extract()[0]
+        item['name'] = baseInfo.xpath("div[@id='gsc_prf_i']/div[@id='gsc_prf_in']/text()").extract()[0]
         item['position'] = baseInfo.xpath("div[@id='gsc_prf_i']/div[@class='gsc_prf_il']/text()").extract()[0]
         item['keywords'] = baseInfo.xpath("div[@id='gsc_prf_i']/div[@class='gsc_prf_il']/a[@class='gsc_prf_ila']/text()").extract()
         item['homePage'] = baseInfo.xpath("div[@id='gsc_prf_i']/div[@id='gsc_prf_ivh']/a/@href").extract()[0]
@@ -64,7 +64,6 @@ class DmozSpider(scrapy.Spider):
                     name=coAuthor.xpath("a/text()").extract()[0],
                     link=coAuthor.xpath("a/@href").extract()[0]
                 ))
-                qq = scrapy.Request(baseurl + link, callback=self.parse_article, dont_filter=True)
             except:
                 pass
 
@@ -75,10 +74,12 @@ class DmozSpider(scrapy.Spider):
 
         for art in base.xpath("div[@id='gsc_art']/form/table/tbody/tr"):
             try:
+                link = art.xpath("td[@class='gsc_a_t']/a/@href").extract()[0]
                 articles.append(dict(
                     name=art.xpath("td[@class='gsc_a_t']/a/text()").extract()[0],
-                    link=art.xpath("td[@class='gsc_a_t']/a/@href").extract()[0]
+                    link=link
                 ))
+                qq = scrapy.Request(baseurl + link, callback=self.parse_article, dont_filter=True)
                 
             except:
                 pass
@@ -94,6 +95,7 @@ class DmozSpider(scrapy.Spider):
     
     
     def parse_article(self, response):
+        print ("LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL")
         time.sleep(random.randrange(2, 5))
         item = DmozyArticle()
         base = response.xpath("/html/body/div[@id='gs_top']/div[@id='gs_bdy']/div[@id='gs_ccl']/div[@id='gsc_ccl']")
@@ -127,4 +129,4 @@ class DmozSpider(scrapy.Spider):
         
         item['itemtype'] = 'Paper'
         exporter.export_item(item)
-        yield item
+        return item
