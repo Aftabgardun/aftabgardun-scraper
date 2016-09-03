@@ -31,7 +31,8 @@ class DmozSpider(scrapy.Spider):
         exporterfile.close()
     
     def start_requests(self):
-        for u in self.start_urls:
+        while (len(self.start_urls) > 0):
+            u = self.start_urls.pop(0)
             yield scrapy.Request(u, callback=self.parse,
                                     dont_filter=True)
                                     
@@ -110,10 +111,13 @@ class DmozSpider(scrapy.Spider):
             try:
                 k = i.xpath("div[@class='gsc_field']/text()").extract()
                 v = i.xpath("div[@class='gsc_value']/text()").extract()
-
+                
                 if (k == 'Authors'):
                     item['authors'] = v.split(',')
-
+                    for lk in item['authors']:
+                        yield scrapy.Request("https://scholar.google.com/citations?view_op=search_authors&mauthors=" + "+".join(lk.strip().lower().split(' ')) + "&hl=en&oi=ao", callback=self.parse, dont_filter=True)
+                        
+                        
                 elif (k == 'Publication date'):
                     item['date'] = v
 
@@ -128,4 +132,4 @@ class DmozSpider(scrapy.Spider):
         
         item['itemtype'] = 'Paper'
         exporter.export_item(item)
-        return item
+        yield item
