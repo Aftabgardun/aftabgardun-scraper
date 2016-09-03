@@ -44,7 +44,10 @@ class DmozSpider(scrapy.Spider):
         for sel in response.xpath("/html/body//div[@id='gs_bdy']/div[@role='main']//div[@class='gsc_1usr gs_scl']"):
             link = sel.xpath("div[@class='gsc_1usr_photo']/a/@href").extract()[0]
             time.sleep(random.randrange(6, 10))
-            yield scrapy.Request(baseurl + link, callback=self.parse_person, dont_filter=True)
+            linkId = parse_qs(urlsplit(link).query)['user'][0]
+            if linkId not in global_seen_user:
+                global_seen_paper.append(linkId)
+                yield scrapy.Request(baseurl + link, callback=self.parse_person, dont_filter=True)
     
 
     def parse_person(self, response):
@@ -117,8 +120,8 @@ class DmozSpider(scrapy.Spider):
 
         for i in base.xpath("div[@id='gsc_table']/div[@class='gs_scl']"):
             try:
-                k = i.xpath("div[@class='gsc_field']/text()").extract()
-                v = i.xpath("div[@class='gsc_value']/text()").extract()
+                k = i.xpath("div[@class='gsc_field']/text()").extract()[0]
+                v = i.xpath("div[@class='gsc_value']/text()").extract()[0]
                 
                 if (k == 'Authors'):
                     item['authors'] = v.split(',')
