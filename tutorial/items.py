@@ -27,3 +27,12 @@ class DmozyItem(scrapy.Item):
     homePage = scrapy.Field()
     coAuthors = scrapy.Field()
     articles = scrapy.Field()
+
+
+class DmozyArticle(scrapy.Item):
+    link = scrapy.Field()
+    name = scrapy.Field()
+    authors = scrapy.Field()
+    date = scrapy.Field()
+    publisher = scrapy.Field()
+    description = scrapy.Field()
