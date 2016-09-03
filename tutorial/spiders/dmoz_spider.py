@@ -44,22 +44,18 @@ class DmozSpider(scrapy.Spider):
             name = u''.join(sel.xpath("div[@class='gsc_1usr_text']/h3[@class='gsc_1usr_name']/a//text()").extract())
             afflication = u''.join(sel.xpath("div[@class='gsc_1usr_text']/div[@class='gsc_1usr_aff']/text()").extract())
             email = u''.join(sel.xpath("div[@class='gsc_1usr_text']/div[@class='gsc_1usr_emlb']/text()").extract())
-            print image
-            print link
-            print name
-            print afflication
-            print email
             item = DmozItem()
             item['name'] = name
             item['link'] = link
             item['desc'] = afflication
             item['mail'] = email
             item['photo'] = image
+            item['itemtype'] = "Person"
             time.sleep(random.randrange(6, 10))
             yield scrapy.Request(baseurl + item['link'], callback=self.parse_person, dont_filter=True)
             #print(res)
             #yield item
-            exporter.export_item(item)
+            #exporter.export_item(item)
             #title = sel.xpath('a/text()').extract()
             #link = sel.xpath('a/@href').extract()
             #desc = sel.xpath('text()').extract()
@@ -71,6 +67,7 @@ class DmozSpider(scrapy.Spider):
         base = response.xpath("/html/body//div[@id='gsc_bdy']")
 
         baseInfo = base.xpath("div[@class='gsc_lcl']/div[@id='gsc_prf']")
+        item['itemtype'] = "Person"
         item['author'] = baseInfo.xpath("div[@id='gsc_prf_i']/div[@id='gsc_prf_in']/text()").extract()[0]
         item['position'] = baseInfo.xpath("div[@id='gsc_prf_i']/div[@class='gsc_prf_il']/text()").extract()[0]
         item['keywords'] = baseInfo.xpath("div[@id='gsc_prf_i']/div[@class='gsc_prf_il']/a[@class='gsc_prf_ila']/text()").extract()

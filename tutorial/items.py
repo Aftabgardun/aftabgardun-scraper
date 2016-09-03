@@ -14,6 +14,7 @@ class TutorialItem(scrapy.Item):
     pass
 
 class DmozItem(scrapy.Item):
+    itemtype = scrapy.Field()
     name = scrapy.Field()
     link = scrapy.Field()
     desc = scrapy.Field()
@@ -21,6 +22,7 @@ class DmozItem(scrapy.Item):
     photo = scrapy.Field()
 
 class DmozyItem(scrapy.Item):
+    itemtype = scrapy.Field()
     author = scrapy.Field()
     position = scrapy.Field()
     keywords = scrapy.Field()
@@ -30,6 +32,7 @@ class DmozyItem(scrapy.Item):
 
 
 class DmozyArticle(scrapy.Item):
+    itemtype = scrapy.Field()
     link = scrapy.Field()
     name = scrapy.Field()
     authors = scrapy.Field()
