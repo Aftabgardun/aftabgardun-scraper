@@ -79,7 +79,7 @@ class DmozSpider(scrapy.Spider):
                     name=art.xpath("td[@class='gsc_a_t']/a/text()").extract()[0],
                     link=link
                 ))
-                qq = scrapy.Request(baseurl + link, callback=self.parse_article, dont_filter=True)
+                yield scrapy.Request(baseurl + link, callback=self.parse_article, dont_filter=True)
                 
             except:
                 pass
@@ -90,14 +90,13 @@ class DmozSpider(scrapy.Spider):
         time.sleep(random.randrange(2, 5))
         
         exporter.export_item(item)
-        return item
-        
+        yield item
     
     
     def parse_article(self, response):
-        print ("LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL")
         time.sleep(random.randrange(2, 5))
         item = DmozyArticle()
+
         base = response.xpath("/html/body/div[@id='gs_top']/div[@id='gs_bdy']/div[@id='gs_ccl']/div[@id='gsc_ccl']")
 
         item['name'] = base.xpath("div[@id='gsc_title_wrapper']/div[@id='gsc_title']/a/text()").extract()[0]
