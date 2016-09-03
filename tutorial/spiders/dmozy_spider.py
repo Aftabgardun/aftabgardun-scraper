@@ -12,7 +12,7 @@ class DmozySpider(scrapy.Spider):
     start_urls = [
         starturl,
     ]
-
+    
     def parse(self, response):
         item = DmozyItem()
         base = response.xpath("/html/body//div[@id='gsc_bdy']")

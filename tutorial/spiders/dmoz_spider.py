@@ -1,9 +1,14 @@
 import scrapy
 import time, random
-from tutorial.items import DmozItem
+from tutorial.items import DmozItem, DmozyItem
+from scrapy.exporters import JsonItemExporter
 
 starturl = "https://scholar.google.com/citations?view_op=search_authors&mauthors=mohsen+sharifi&hl=en&oi=ao"
 baseurl = "https://scholar.google.com"
+
+exporterfile = open("items.json",'wb')
+exporter = JsonItemExporter(exporterfile)
+exporter.start_exporting()
 
 urls = [
         "https://scholar.google.com/citations?view_op=search_authors&mauthors=mohsen+sharifi&hl=en&oi=ao",
@@ -19,7 +24,11 @@ class DmozSpider(scrapy.Spider):
     allowed_domains = ["dmoz.org"]
     start_urls = [
         starturl
-    ]
+    ] + urls
+    
+    def closed(self, reason):
+        exporter.finish_exporting()
+        exporterfile.close()
     
     def start_requests(self):
         for u in self.start_urls:
@@ -47,20 +56,17 @@ class DmozSpider(scrapy.Spider):
             item['mail'] = email
             item['photo'] = image
             time.sleep(random.randrange(6, 10))
-            yield scrapy.Request(baseurl + item['link'], callback=self.parse_person, errback=self.errc)
+            yield scrapy.Request(baseurl + item['link'], callback=self.parse_person, dont_filter=True)
             #print(res)
             #yield item
-            
+            exporter.export_item(item)
             #title = sel.xpath('a/text()').extract()
             #link = sel.xpath('a/@href').extract()
             #desc = sel.xpath('text()').extract()
             #print title, link, desc
     
-    def errc(self, response):
-        v = fs
     
     def parse_person(self, response):
-        k = sasa
         item = DmozyItem()
         base = response.xpath("/html/body//div[@id='gsc_bdy']")
 
@@ -100,5 +106,7 @@ class DmozSpider(scrapy.Spider):
         item['articles'] = articles
         del articles
         print ("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH")
-        yield item
         time.sleep(random.randrange(1, 5))
+        
+        exporter.export_item(item)
+        return item
