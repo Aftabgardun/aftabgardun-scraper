@@ -117,10 +117,10 @@ class DmozSpider(scrapy.Spider):
                     item['date'] = v
 
                 elif (k == 'Description'):
-                    item['description'] = k
+                    item['description'] = v
 
                 elif (k == 'Publisher'):
-                    item['publisher'] = k
+                    item['publisher'] = v
 
             except:
                 pass
