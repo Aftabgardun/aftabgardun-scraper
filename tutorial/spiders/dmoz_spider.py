@@ -64,7 +64,7 @@ class DmozSpider(scrapy.Spider):
                     name=coAuthor.xpath("a/text()").extract()[0],
                     link=coAuthor.xpath("a/@href").extract()[0]
                 ))
-
+                qq = scrapy.Request(baseurl + link, callback=self.parse_article, dont_filter=True)
             except:
                 pass
 
@@ -79,7 +79,7 @@ class DmozSpider(scrapy.Spider):
                     name=art.xpath("td[@class='gsc_a_t']/a/text()").extract()[0],
                     link=art.xpath("td[@class='gsc_a_t']/a/@href").extract()[0]
                 ))
-
+                
             except:
                 pass
 
