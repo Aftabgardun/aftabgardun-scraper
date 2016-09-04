@@ -1,5 +1,4 @@
 import scrapy
-import time, random
 from urlparse import parse_qs, urlsplit
 from tutorial.items import DmozItem, DmozyArticle
 from scrapy.exporters import JsonItemExporter
@@ -46,7 +45,6 @@ class DmozSpider(scrapy.Spider):
         global global_seen_user
         for sel in response.xpath("/html/body//div[@id='gs_bdy']/div[@role='main']//div[@class='gsc_1usr gs_scl']"):
             link = sel.xpath("div[@class='gsc_1usr_photo']/a/@href").extract()[0]
-            time.sleep(random.randrange(6, 10))
             linkId = parse_qs(urlsplit(link).query)['user'][0]
             if linkId not in global_seen_user:
                 global_seen_user.append(linkId)
@@ -122,7 +120,6 @@ class DmozSpider(scrapy.Spider):
 
                 if (name not in global_seen_paper):
                     global_seen_paper.append(name)
-                    time.sleep(random.randrange(5, 8))
                     yield scrapy.Request(baseurl + link, callback=self.parse_article, dont_filter=True)
                 
             except:
@@ -137,8 +134,6 @@ class DmozSpider(scrapy.Spider):
 
         item['articles'] = articles
         del articles
-
-        time.sleep(random.randrange(2, 5))
         
         exporter.export_item(item)
         print ("Scraped Person:" + item['name'])
@@ -165,7 +160,6 @@ class DmozSpider(scrapy.Spider):
                 if (k == 'Authors'):
                     item['authors'] = v.split(',')
                     for lk in item['authors']:
-                        time.sleep(random.randrange(2, 4))
                         yield scrapy.Request("https://scholar.google.com/citations?view_op=search_authors&mauthors=" +
                                              "+".join(lk.strip().lower().split(' ')) + "&hl=en&oi=ao",
                                              callback=self.parse, dont_filter=True)
@@ -207,7 +201,6 @@ class DmozSpider(scrapy.Spider):
 
                 if (name not in global_seen_paper):
                     global_seen_paper.append(name)
-                    time.sleep(random.randrange(5, 8))
                     yield scrapy.Request(baseurl + link, callback=self.parse_article, dont_filter=True)
 
             except:
