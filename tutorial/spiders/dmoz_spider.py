@@ -48,7 +48,7 @@ class DmozSpider(scrapy.Spider):
             linkId = parse_qs(urlsplit(link).query)['user'][0]
             if linkId not in global_seen_user:
                 global_seen_user.append(linkId)
-                yield scrapy.Request(baseurl + link, callback=self.parse_person, dont_filter=True)
+                yield scrapy.Request(baseurl + link + "&cstart=0&pagesize=100", callback=self.parse_person, dont_filter=True)
     
 
     def parse_person(self, response):
@@ -120,11 +120,18 @@ class DmozSpider(scrapy.Spider):
 
                 if (name not in global_seen_paper):
                     global_seen_paper.append(name)
-                    time.sleep(random.randrange(2, 4))
+                    time.sleep(random.randrange(5, 8))
                     yield scrapy.Request(baseurl + link, callback=self.parse_article, dont_filter=True)
                 
             except:
                 pass
+
+        if not (base.xpath("div[@id='gsc_art']/form/div[@id='gsc_lwp']/div/button[@id='gsc_bpf_next'][@disabled]")):
+            cstart = parse_qs(urlsplit(response.url).query)['cstart'][0]
+            newstart = str(int(cstart) + 100)
+            scrapy.Request(response.url.replace('cstart=' + cstart, 'cstart=' + newstart),
+                           callback=self.parse_paper_list, dont_filter=True)
+
 
         item['articles'] = articles
         del articles
@@ -179,3 +186,33 @@ class DmozSpider(scrapy.Spider):
         
         print ("Scraped Paper:" + item['name'])
         yield item
+
+
+    def parse_paper_list(self, response):
+        userId = parse_qs(urlsplit(response.url).query)['user'][0]
+
+        base = response.xpath("/html/body//div[@id='gsc_bdy']")
+
+        articles = []
+        for art in base.xpath("div[@id='gsc_art']/form/table/tbody/tr"):
+            try:
+                link = art.xpath("td[@class='gsc_a_t']/a/@href").extract()[0]
+                name = art.xpath("td[@class='gsc_a_t']/a/text()").extract()[0]
+                articles.append(dict(
+                    name=name,
+                    link=link
+                ))
+
+                if (name not in global_seen_paper):
+                    global_seen_paper.append(name)
+                    time.sleep(random.randrange(5, 8))
+                    yield scrapy.Request(baseurl + link, callback=self.parse_article, dont_filter=True)
+
+            except:
+                pass
+
+        if not (base.xpath("div[@id='gsc_art']/form/div[@id='gsc_lwp']/div/button[@id='gsc_bpf_next'][@disabled]")):
+            cstart = parse_qs(urlsplit(response.url).query)['cstart'][0]
+            newstart = str(int(cstart) + 100)
+            yield scrapy.Request(response.url.replace('cstart=' + cstart, 'cstart=' + newstart),
+                           callback=self.parse_paper_list, dont_filter=True)
