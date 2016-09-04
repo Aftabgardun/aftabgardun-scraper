@@ -35,7 +35,7 @@ class DmozSpider(scrapy.Spider):
         exporterfile.close()
     
     def start_requests(self):
-        self.state['seen_user'] = []
+        self.state['seen_users'] = []
         self.state['seen_paper'] = []
 
         while (len(self.start_urls) > 0):
@@ -99,9 +99,9 @@ class DmozSpider(scrapy.Spider):
         
         p = models.Person(name=item['name'])
         p.googleid = item['dmozid']
-        p.email = item[mail]
-        if (item['homepage']):
-            p.webpages.append(item['homepage'])
+        p.email = item['mail']
+        if (item['homePage']):
+            p.webpages.append(item['homePage'])
         p.occupation = item['position']
         if (item['photo']):
             p.photo = baseurl + item['photo']
@@ -145,7 +145,7 @@ class DmozSpider(scrapy.Spider):
             cstart = parse_qs(urlsplit(response.url).query)['cstart'][0]
             newstart = str(int(cstart) + 100)
             scrapy.Request(response.url.replace('cstart=' + cstart, 'cstart=' + newstart),
-                           callback=self.parse_paper_list, dont_filter=True)
+                           callback=self.parse_paper_list, dont_filter=True, meta={"person": p})
 
 
         item['articles'] = articles
@@ -159,21 +159,27 @@ class DmozSpider(scrapy.Spider):
     
     def parse_article(self, response):
         item = DmozyArticle()
-
+        
         base = response.xpath("/html/body/div[@id='gs_top']/div[@id='gs_bdy']/div[@id='gs_ccl']/div[@id='gsc_ccl']")
-
+        
         try:
             item['name'] = base.xpath("div[@id='gsc_title_wrapper']/div[@id='gsc_title']/a/text()").extract()[0]
-
+        
         except:
             return
-
+        
         try:
             item['link'] = base.xpath("div[@id='gsc_title_wrapper']/div[@id='gsc_title_gg']/div/a/@href").extract()[0]
-
+        
         except:
-            pass
-
+            
+            item['link'] = ""
+        
+        item['date'] = ""
+        item['description'] = ""
+        item['publisher'] = ""
+        item['authors'] = []
+        
         for i in base.xpath("div[@id='gsc_table']/div[@class='gs_scl']"):
             try:
                 k = i.xpath("div[@class='gsc_field']/text()").extract()[0]
@@ -201,7 +207,15 @@ class DmozSpider(scrapy.Spider):
         
         item['itemtype'] = 'Paper'
         #exporter.export_item(item)
-        
+        p = models.Paper(title=item['name'])
+        if (item['description']):
+            p.digest = item['description']
+        if (item['publisher']):
+            p.publisher = item['publisher']
+        if (item['link']):
+            p.content = item['link']
+        p.authors.extend(item['authors'])
+        p.save()
         
         print ("Scraped Paper:" + item['name'])
         yield item
@@ -209,7 +223,7 @@ class DmozSpider(scrapy.Spider):
 
     def parse_paper_list(self, response):
         userId = parse_qs(urlsplit(response.url).query)['user'][0]
-
+        p = response.meta['person']
         base = response.xpath("/html/body//div[@id='gsc_bdy']")
 
         articles = []
@@ -221,10 +235,11 @@ class DmozSpider(scrapy.Spider):
                     name=name,
                     link=link
                 ))
-
                 if (name not in self.state['seen_paper']):
                     self.state['seen_paper'].append(name)
                     yield scrapy.Request(baseurl + link, callback=self.parse_article, dont_filter=True)
+                if (name not in p.papers):
+                    p.articles.append(name)
 
             except:
                 pass
