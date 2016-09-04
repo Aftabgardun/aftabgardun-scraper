@@ -106,7 +106,6 @@ class DmozSpider(scrapy.Spider):
     
     
     def parse_article(self, response):
-        time.sleep(random.randrange(2, 5))
         item = DmozyArticle()
 
         base = response.xpath("/html/body/div[@id='gs_top']/div[@id='gs_bdy']/div[@id='gs_ccl']/div[@id='gsc_ccl']")
@@ -126,7 +125,10 @@ class DmozSpider(scrapy.Spider):
                 if (k == 'Authors'):
                     item['authors'] = v.split(',')
                     for lk in item['authors']:
-                        yield scrapy.Request("https://scholar.google.com/citations?view_op=search_authors&mauthors=" + "+".join(lk.strip().lower().split(' ')) + "&hl=en&oi=ao", callback=self.parse, dont_filter=True)
+                        time.sleep(random.randrange(2, 4))
+                        yield scrapy.Request("https://scholar.google.com/citations?view_op=search_authors&mauthors=" +
+                                             "+".join(lk.strip().lower().split(' ')) + "&hl=en&oi=ao",
+                                             callback=self.parse, dont_filter=True)
                         
                         
                 elif (k == 'Publication date'):
