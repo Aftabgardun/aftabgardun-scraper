@@ -3,6 +3,9 @@ import time, random
 from urlparse import parse_qs, urlsplit
 from tutorial.items import DmozItem, DmozyArticle
 from scrapy.exporters import JsonItemExporter
+import mongoengine
+
+mongoengine.connect('kallemahi')
 
 global_seen_user = []
 global_seen_paper = []
@@ -40,7 +43,6 @@ class DmozSpider(scrapy.Spider):
             ret = scrapy.Request(u, callback=self.parse,
                                     dont_filter=True)
             yield ret
-            print(ret)
 
     def parse(self, response):
         global global_seen_user
@@ -212,8 +214,9 @@ class DmozSpider(scrapy.Spider):
 
             except:
                 pass
-
+        print("New Page Read for " + userId)
         if not (base.xpath("div[@id='gsc_art']/form/div[@id='gsc_lwp']/div/button[@id='gsc_bpf_next'][@disabled]")):
+            print("Raftam safe baadi")
             cstart = parse_qs(urlsplit(response.url).query)['cstart'][0]
             newstart = str(int(cstart) + 100)
             yield scrapy.Request(response.url.replace('cstart=' + cstart, 'cstart=' + newstart),
