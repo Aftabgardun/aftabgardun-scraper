@@ -119,6 +119,7 @@ class DmozSpider(scrapy.Spider):
 
                 if (name not in global_seen_paper):
                     global_seen_paper.append(name)
+                    time.sleep(random.randrange(2, 4))
                     yield scrapy.Request(baseurl + link, callback=self.parse_article, dont_filter=True)
                 
             except:
