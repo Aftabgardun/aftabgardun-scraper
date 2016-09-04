@@ -24,6 +24,7 @@ class DmozItem(scrapy.Item):
     position = scrapy.Field()
     coAuthors = scrapy.Field()
     articles = scrapy.Field()
+    dmozid = scrapy.Field()
 
 
 class DmozyArticle(scrapy.Item):

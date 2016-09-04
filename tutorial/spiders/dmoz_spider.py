@@ -58,7 +58,8 @@ class DmozSpider(scrapy.Spider):
 
         baseInfo = base.xpath("div[@class='gsc_lcl']/div[@id='gsc_prf']")
         item['itemtype'] = "Person"
-
+        
+        item['dmozid'] = parse_qs(urlsplit(response.url).query)['user'][0]
         try:
             item['photo'] = baseInfo.xpath("div[@id='gsc_prf_pu']/a/img/@src").extract()[0]
         except:
