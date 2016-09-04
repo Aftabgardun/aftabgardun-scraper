@@ -41,18 +41,18 @@ class DmozSpider(scrapy.Spider):
                                     dont_filter=True)
                                     
     def parse(self, response):
+        global global_seen_user
         for sel in response.xpath("/html/body//div[@id='gs_bdy']/div[@role='main']//div[@class='gsc_1usr gs_scl']"):
             link = sel.xpath("div[@class='gsc_1usr_photo']/a/@href").extract()[0]
             time.sleep(random.randrange(6, 10))
             linkId = parse_qs(urlsplit(link).query)['user'][0]
             if linkId not in global_seen_user:
-                print(linkId)
-                print(global_seen_user)
-                global_seen_paper.append(linkId)
+                global_seen_user.append(linkId)
                 yield scrapy.Request(baseurl + link, callback=self.parse_person, dont_filter=True)
     
 
     def parse_person(self, response):
+        global global_seen_paper
         item = DmozItem()
         base = response.xpath("/html/body//div[@id='gsc_bdy']")
 
@@ -131,6 +131,7 @@ class DmozSpider(scrapy.Spider):
         time.sleep(random.randrange(2, 5))
         
         exporter.export_item(item)
+        print ("Scraped Person:" + item['name'])
         yield item
     
     
@@ -174,4 +175,6 @@ class DmozSpider(scrapy.Spider):
         
         item['itemtype'] = 'Paper'
         exporter.export_item(item)
+        
+        print ("Scraped Paper:" + item['name'])
         yield item
