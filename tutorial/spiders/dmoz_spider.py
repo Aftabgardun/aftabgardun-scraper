@@ -3,6 +3,7 @@ from urlparse import parse_qs, urlsplit
 from tutorial.items import DmozItem, DmozyArticle
 from scrapy.exporters import JsonItemExporter
 import mongoengine
+import models
 
 mongoengine.connect('kallemahi')
 
@@ -70,8 +71,8 @@ class DmozSpider(scrapy.Spider):
         try:
             item['name'] = baseInfo.xpath("div[@id='gsc_prf_i']/div[@id='gsc_prf_in']/text()").extract()[0]
         except:
-            item['name'] = ''
-
+            return
+        
         try:
             item['position'] = baseInfo.xpath("div[@id='gsc_prf_i']/div[@class='gsc_prf_il']/text()").extract()[0]
         except:
@@ -95,7 +96,20 @@ class DmozSpider(scrapy.Spider):
             item['mail'] = ''
 
         item['link'] = response.url
-
+        
+        
+        
+        p = models.Person(name=item['name'])
+        p.googleid = item['dmozid']
+        p.email = item[mail]
+        if (item['homepage']):
+            p.webpages.append(item['homepage'])
+        p.occupation = item['position']
+        if (item['photo']):
+            p.photo = baseurl + item['photo']
+        p.keywords.extend(item['keywords'])
+        
+        
         coAuthors = []
         for coAuthor in base.xpath("div[@id='gsc_rsb']/div[@id='gsc_rsb_co']/ul/li"):
             try:
@@ -123,6 +137,8 @@ class DmozSpider(scrapy.Spider):
                 if (name not in global_seen_paper):
                     global_seen_paper.append(name)
                     yield scrapy.Request(baseurl + link, callback=self.parse_article, dont_filter=True)
+                if (name not in p.papers):
+                    p.papers.append(name)
                 
             except:
                 pass
@@ -137,7 +153,8 @@ class DmozSpider(scrapy.Spider):
         item['articles'] = articles
         del articles
         
-        exporter.export_item(item)
+        p.save()
+        #exporter.export_item(item)
         print ("Scraped Person:" + item['name'])
         yield item
     
@@ -185,7 +202,8 @@ class DmozSpider(scrapy.Spider):
                 pass
         
         item['itemtype'] = 'Paper'
-        exporter.export_item(item)
+        #exporter.export_item(item)
+        
         
         print ("Scraped Paper:" + item['name'])
         yield item
