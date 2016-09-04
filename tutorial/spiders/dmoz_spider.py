@@ -46,6 +46,8 @@ class DmozSpider(scrapy.Spider):
             time.sleep(random.randrange(6, 10))
             linkId = parse_qs(urlsplit(link).query)['user'][0]
             if linkId not in global_seen_user:
+                print(linkId)
+                print(global_seen_user)
                 global_seen_paper.append(linkId)
                 yield scrapy.Request(baseurl + link, callback=self.parse_person, dont_filter=True)
     
@@ -155,7 +157,7 @@ class DmozSpider(scrapy.Spider):
                         yield scrapy.Request("https://scholar.google.com/citations?view_op=search_authors&mauthors=" +
                                              "+".join(lk.strip().lower().split(' ')) + "&hl=en&oi=ao",
                                              callback=self.parse, dont_filter=True)
-                        
+                            
                         
                 elif (k == 'Publication date'):
                     item['date'] = v
