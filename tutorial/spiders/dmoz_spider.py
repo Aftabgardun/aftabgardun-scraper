@@ -56,13 +56,39 @@ class DmozSpider(scrapy.Spider):
 
         baseInfo = base.xpath("div[@class='gsc_lcl']/div[@id='gsc_prf']")
         item['itemtype'] = "Person"
-        item['photo'] = baseInfo.xpath("div[@id='gsc_prf_pu']/a/img/@src").extract()[0]
-        item['name'] = baseInfo.xpath("div[@id='gsc_prf_i']/div[@id='gsc_prf_in']/text()").extract()[0]
-        item['position'] = baseInfo.xpath("div[@id='gsc_prf_i']/div[@class='gsc_prf_il']/text()").extract()[0]
-        item['keywords'] = baseInfo.xpath("div[@id='gsc_prf_i']/div[@class='gsc_prf_il']/a[@class='gsc_prf_ila']/text()").extract()
-        item['homePage'] = baseInfo.xpath("div[@id='gsc_prf_i']/div[@id='gsc_prf_ivh']/a/@href").extract()[0]
-        item['mail'] = baseInfo.xpath("div[@id='gsc_prf_i']/div[@id='gsc_prf_ivh']/text()").extract()[0]\
-            .replace('Verified email at ', '').replace(' - ', '')
+
+        try:
+            item['photo'] = baseInfo.xpath("div[@id='gsc_prf_pu']/a/img/@src").extract()[0]
+        except:
+            item['photo'] = ''
+
+        try:
+            item['name'] = baseInfo.xpath("div[@id='gsc_prf_i']/div[@id='gsc_prf_in']/text()").extract()[0]
+        except:
+            item['name'] = ''
+
+        try:
+            item['position'] = baseInfo.xpath("div[@id='gsc_prf_i']/div[@class='gsc_prf_il']/text()").extract()[0]
+        except:
+            item['position'] = ''
+
+        try:
+            item['keywords'] = baseInfo.xpath(
+                "div[@id='gsc_prf_i']/div[@class='gsc_prf_il']/a[@class='gsc_prf_ila']/text()").extract()
+        except:
+            item['keywords'] = ''
+
+        try:
+            item['homePage'] = baseInfo.xpath("div[@id='gsc_prf_i']/div[@id='gsc_prf_ivh']/a/@href").extract()[0]
+        except:
+            item['homePage'] = ''
+
+        try:
+            item['mail'] = baseInfo.xpath("div[@id='gsc_prf_i']/div[@id='gsc_prf_ivh']/text()").extract()[0] \
+                .replace('Verified email at ', '').replace(' - ', '')
+        except:
+            item['mail'] = ''
+
         item['link'] = response.url
 
         coAuthors = []
