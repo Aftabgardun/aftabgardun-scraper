@@ -37,9 +37,11 @@ class DmozSpider(scrapy.Spider):
     def start_requests(self):
         while (len(self.start_urls) > 0):
             u = self.start_urls.pop(0)
-            yield scrapy.Request(u, callback=self.parse,
+            ret = scrapy.Request(u, callback=self.parse,
                                     dont_filter=True)
-                                    
+            yield ret
+            print(ret)
+
     def parse(self, response):
         global global_seen_user
         for sel in response.xpath("/html/body//div[@id='gs_bdy']/div[@role='main']//div[@class='gsc_1usr gs_scl']"):
