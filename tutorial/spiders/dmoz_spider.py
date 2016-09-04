@@ -3,9 +3,6 @@ from urlparse import parse_qs, urlsplit
 from tutorial.items import DmozItem, DmozyArticle
 from scrapy.exporters import JsonItemExporter
 
-global_seen_user = []
-global_seen_paper = []
-
 starturl = "https://scholar.google.com/citations?view_op=search_authors&mauthors=mohsen+sharifi&hl=en&oi=ao"
 baseurl = "https://scholar.google.com"
 
@@ -28,12 +25,15 @@ class DmozSpider(scrapy.Spider):
     start_urls = [
         starturl
     ]
-    
+
     def closed(self, reason):
         exporter.finish_exporting()
         exporterfile.close()
     
     def start_requests(self):
+        self.state['seen_user'] = []
+        self.state['seen_paper'] = []
+
         while (len(self.start_urls) > 0):
             u = self.start_urls.pop(0)
             ret = scrapy.Request(u, callback=self.parse,
@@ -42,17 +42,15 @@ class DmozSpider(scrapy.Spider):
             print(ret)
 
     def parse(self, response):
-        global global_seen_user
         for sel in response.xpath("/html/body//div[@id='gs_bdy']/div[@role='main']//div[@class='gsc_1usr gs_scl']"):
             link = sel.xpath("div[@class='gsc_1usr_photo']/a/@href").extract()[0]
             linkId = parse_qs(urlsplit(link).query)['user'][0]
-            if linkId not in global_seen_user:
-                global_seen_user.append(linkId)
+            if linkId not in self.state['seen_users']:
+                self.state['seen_users'].append(linkId)
                 yield scrapy.Request(baseurl + link + "&cstart=0&pagesize=100", callback=self.parse_person, dont_filter=True)
     
 
     def parse_person(self, response):
-        global global_seen_paper
         item = DmozItem()
         base = response.xpath("/html/body//div[@id='gsc_bdy']")
 
@@ -118,8 +116,8 @@ class DmozSpider(scrapy.Spider):
                     link=link
                 ))
 
-                if (name not in global_seen_paper):
-                    global_seen_paper.append(name)
+                if (name not in self.state['seen_paper']):
+                    self.state['seen_paper'].append(name)
                     yield scrapy.Request(baseurl + link, callback=self.parse_article, dont_filter=True)
                 
             except:
@@ -204,8 +202,8 @@ class DmozSpider(scrapy.Spider):
                     link=link
                 ))
 
-                if (name not in global_seen_paper):
-                    global_seen_paper.append(name)
+                if (name not in self.state['seen_paper']):
+                    self.state['seen_paper'].append(name)
                     yield scrapy.Request(baseurl + link, callback=self.parse_article, dont_filter=True)
 
             except:
