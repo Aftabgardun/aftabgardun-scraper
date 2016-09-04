@@ -37,8 +37,10 @@ class DmozSpider(scrapy.Spider):
     def start_requests(self):
         while (len(self.start_urls) > 0):
             u = self.start_urls.pop(0)
-            yield scrapy.Request(u, callback=self.parse,
+            ret = scrapy.Request(u, callback=self.parse,
                                     dont_filter=True)
+            yield ret
+            print(ret)
                                     
     def parse(self, response):
         global global_seen_user
@@ -48,7 +50,9 @@ class DmozSpider(scrapy.Spider):
             linkId = parse_qs(urlsplit(link).query)['user'][0]
             if linkId not in global_seen_user:
                 global_seen_user.append(linkId)
-                yield scrapy.Request(baseurl + link, callback=self.parse_person, dont_filter=True)
+                ret = scrapy.Request(baseurl + link, callback=self.parse_person, dont_filter=True)
+                print(ret)
+                yield ret
     
 
     def parse_person(self, response):
