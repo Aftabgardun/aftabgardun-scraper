@@ -166,13 +166,17 @@ class DmozSpider(scrapy.Spider):
             item['name'] = base.xpath("div[@id='gsc_title_wrapper']/div[@id='gsc_title']/a/text()").extract()[0]
         
         except:
-            return
+            try:
+                item['name'] = base.xpath("div[@id='gsc_title_wrapper']/div[@id='gsc_title']/text()").extract()[0]
+
+            except:
+                print "Bug:" + response.url
+                return
         
         try:
             item['link'] = base.xpath("div[@id='gsc_title_wrapper']/div[@id='gsc_title_gg']/div/a/@href").extract()[0]
         
         except:
-            
             item['link'] = ""
         
         item['date'] = ""
