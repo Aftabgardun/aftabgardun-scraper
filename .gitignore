@@ -90,3 +90,4 @@ ENV/
 .idea/
 
 items.json
+state/
