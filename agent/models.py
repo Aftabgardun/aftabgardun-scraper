@@ -1,5 +1,10 @@
 from mongoengine import *
 
+alias_lists = ['buffer-db', 'main-db'] # list of aliases
+dbs = ['kallemahi', 'aftsabgardun'] # list of databases
+for alias, db in zip(alias_lists, dbs):
+    mongoengine.register_connection(alias, db)
+
 #from sqlalchemy.dialects.mysql import BIGINT
 class Person(Document):
     '''Person'''
@@ -20,7 +25,8 @@ class Person(Document):
             {
                 'fields': ['email']
             }
-        ]
+        ],
+        "db_alias": 'main-db'
     }
     
 class Paper(Document):
@@ -56,7 +62,8 @@ class Paper(Document):
             {
                 'fields': ['date']
             }
-        ]
+        ],
+        "db_alias": 'buffer-db'
     }
     
 class Organization(Document):
@@ -72,7 +79,8 @@ class Organization(Document):
             {
                 'fields': ['name']
             }
-        ]
+        ],
+        "db_alias": 'main-db'
     }
     
     

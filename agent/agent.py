@@ -1,11 +1,8 @@
 import mongoengine
+
 import models
 
 
-alias_lists = ['buffer-db', 'main-db'] # list of aliases
-dbs = ['kallemahi', 'aftsabgardun'] # list of databases
-for alias, db in zip(alias_lists, dbs):
-    mongoengine.register_connection(alias, db)
     
     
 class Person(mongoengine.Document):
@@ -72,5 +69,7 @@ class Paper(mongoengine.Document):
     
 k = Person.objects(maindbid=None)
 for i in k:
+    p = models.Person(name=i.name)
+    p.email = i.mail
     
     i.maindbid
