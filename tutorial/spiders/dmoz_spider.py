@@ -218,7 +218,7 @@ class DmozSpider(scrapy.Spider):
             p.publisher = item['publisher']
         if (item['link']):
             p.content = item['link']
-        p.authors.extend(item['authors'])
+        p.authors.extend([i.strip() for i in item['authors']])
         p.save()
         
         print ("Scraped Paper:" + item['name'])

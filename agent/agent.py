@@ -2,7 +2,7 @@ import mongoengine
 
 import models
 
-
+import utility
     
     
 class Person(mongoengine.Document):
@@ -26,6 +26,9 @@ class Person(mongoengine.Document):
             },
             {
                 'fields': ['email']
+            },
+            {
+                'fields': ['maindbid']
             }
         ],
         "db_alias": 'buffer-db'
@@ -62,14 +65,90 @@ class Paper(mongoengine.Document):
             },
             {
                 'fields': ['date']
+            },
+            {
+                'fields': ['maindbid']
             }
         ],
         "db_alias": 'buffer-db'
     }
     
+#for i in Person.objects():
+#    i.maindbid = None
+#    i.save()
+#for i in Paper.objects():
+#    i.maindbid = None
+#    i.save()
+
 k = Person.objects(maindbid=None)
 for i in k:
-    p = models.Person(name=i.name)
-    p.email = i.mail
+    p2 = models.PPerson.objects(name=i.name)
+    cont = False
+    for g in p2:
+        sim = utility.getPersonSimilarity(g, i)
+        if (sim >= 0.6):
+            cont = True
+            i.maindbid = str(g.id)
+            i.save()
+            break
+    if (cont):
+        continue
+    p = models.PPerson(name=i.name)
+    p.email = i.email
+    p.keywords.extend(i.keywords)
+    p.occupation = i.occupation
+    p.photo = i.photo
+    print("Added person ", p.name)
+    p.save()
+    i.maindbid = str(p.id)
+    i.save()
+    #i.maindbid
+
+
+k = Paper.objects(maindbid=None)
+for i in k:
+    pp = models.PPaper.objects(title=i.title)
+    cont = False
+    for p2 in pp:
+        if (p2.digest and i.digest):
+            sim = utility.getStringSimilarity(p2.digest, i.digest)
+            if (sim < 0.8):
+                continue
+        i.maindbid = str(p2.id)
+        i.save()
+        cont = True
+    if (cont):
+        continue
+    p = models.PPaper(title=i.title)
+    p.digest = i.digest
+    p.keywords.extend(i.keywords)
+    p.publisher = i.publisher
+    p.content = i.content
     
-    i.maindbid
+    print("Added paper ", p.title)
+    p.save()
+    i.maindbid = str(p.id)
+    i.save()
+
+k = models.PPerson.objects()
+for i in k:
+    ps = Person.objects(maindbid=str(i.id))
+    for j in ps:
+        for k in j.papers:
+            papers = models.PPaper.objects(title=k)
+            for p in papers:
+                u = Paper.objects(maindbid=str(p.id))
+                ok = False
+                for j in u:
+                    if (i.name in [ppp.strip() for ppp in j.authors]):
+                        ok = True
+                        break
+                if (ok):
+                    if (i not in p.authors):
+                        p.authors.append(i)
+                    if (p not in i.papers):
+                        i.papers.append(p)
+                        print("Done " + i.name + " <=> " + p.title)
+                    i.save()
+                    p.save()
+                    
