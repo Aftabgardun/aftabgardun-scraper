@@ -73,16 +73,16 @@ class Paper(mongoengine.Document):
         "db_alias": 'buffer-db'
     }
     
-#for i in Person.objects():
-#    i.maindbid = None
-#    i.save()
-#for i in Paper.objects():
-#    i.maindbid = None
-#    i.save()
+for i in Person.objects():
+    i.maindbid = None
+    i.save()
+for i in Paper.objects():
+    i.maindbid = None
+    i.save()
 
 k = Person.objects(maindbid=None)
 for i in k:
-    p2 = models.PPerson.objects(name=i.name)
+    p2 = models.PPerson.objects(name__iexact=i.name)
     cont = False
     for g in p2:
         sim = utility.getPersonSimilarity(g, i)
@@ -107,7 +107,7 @@ for i in k:
 
 k = Paper.objects(maindbid=None)
 for i in k:
-    pp = models.PPaper.objects(title=i.title)
+    pp = models.PPaper.objects(title__iexact=i.title)
     cont = False
     for p2 in pp:
         if (p2.digest and i.digest):
@@ -135,12 +135,12 @@ for i in k:
     ps = Person.objects(maindbid=str(i.id))
     for j in ps:
         for k in j.papers:
-            papers = models.PPaper.objects(title=k)
+            papers = models.PPaper.objects(title__iexact=k)
             for p in papers:
                 u = Paper.objects(maindbid=str(p.id))
                 ok = False
                 for j in u:
-                    if (i.name in [ppp.strip() for ppp in j.authors]):
+                    if (i.name.strip().lower() in [ppp.strip().lower() for ppp in j.authors]):
                         ok = True
                         break
                 if (ok):

@@ -69,6 +69,7 @@ class DmozSpider(scrapy.Spider):
         try:
             item['name'] = baseInfo.xpath("div[@id='gsc_prf_i']/div[@id='gsc_prf_in']/text()").extract()[0]
         except:
+            print("Error: Person has no Name:" + response.url)
             return
         
         try:
@@ -144,7 +145,7 @@ class DmozSpider(scrapy.Spider):
         if not (base.xpath("div[@id='gsc_art']/form/div[@id='gsc_lwp']/div/button[@id='gsc_bpf_next'][@disabled]")):
             cstart = parse_qs(urlsplit(response.url).query)['cstart'][0]
             newstart = str(int(cstart) + 100)
-            scrapy.Request(response.url.replace('cstart=' + cstart, 'cstart=' + newstart),
+            yield scrapy.Request(response.url.replace('cstart=' + cstart, 'cstart=' + newstart),
                            callback=self.parse_paper_list, dont_filter=True, meta={"person": p})
 
 
