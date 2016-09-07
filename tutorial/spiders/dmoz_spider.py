@@ -8,6 +8,7 @@ import models
 mongoengine.connect('kallemahi')
 
 starturl = "https://scholar.google.com/citations?view_op=search_authors&mauthors=mohsen+sharifi&hl=en&oi=ao"
+starturl2 = "https://www.base-search.net/Search/Results?lookfor=Mohsen+Sharifi"
 baseurl = "https://scholar.google.com"
 
 exporterfile = open("items.json",'wb')
@@ -37,6 +38,8 @@ class DmozSpider(scrapy.Spider):
     def start_requests(self):
         self.state['seen_users'] = []
         self.state['seen_paper'] = []
+        self.state['seen_users2'] = []
+        self.state['seen_papers2'] = []
 
         while (len(self.start_urls) > 0):
             u = self.start_urls.pop(0)
@@ -254,3 +257,35 @@ class DmozSpider(scrapy.Spider):
             newstart = str(int(cstart) + 100)
             yield scrapy.Request(response.url.replace('cstart=' + cstart, 'cstart=' + newstart),
                            callback=self.parse_paper_list, dont_filter=True)
+
+
+
+    def parse_search2(self, response):
+        base = response.xpath("/html/body/div[@id='Box1forIe']/div[@id='Box2forIe']")
+
+        for i in base.xpath("div[@id='ResultsDrilldowns']/div[@id='ResultsBox']/form/div[@class='Results']"):
+            item = DmozyArticle()
+            item['itemtype'] = 'Paper'
+            item['name'] = i.xpath("h2/a/text()").extract()[0]
+            item['link'] = i.xpath("h2/a/@href").extract()[0]
+            item['date'] = ""
+            item['description'] = ""
+            item['publisher'] = ""
+            item['authors'] = []
+
+            for j in base.xpath("div[@class='ResultsContent']/div[@class='DottedLineLeftForIe']/div[@class='Metadata']/div"):
+                k = i.xpath("div[@class='ItemLeft_en']/text()").extract()[0]
+                v = i.xpath("div[@class='ItemRight_en']/text()").extract()[0]
+
+                if k == 'Publisher:':
+                    item['publisher'] = v
+                elif k == 'Year of Publication:':
+                    item['date'] = v
+                elif k == 'URL:':
+                    item['link'] = v
+                elif k == 'Author:':
+                    pass
+
+                yield item
+
+
