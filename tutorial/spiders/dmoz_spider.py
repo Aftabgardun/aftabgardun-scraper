@@ -56,6 +56,7 @@ class DmozSpider(scrapy.Spider):
         for sel in response.xpath("/html/body//div[@id='gs_bdy']/div[@role='main']//div[@class='gsc_1usr gs_scl']"):
             link = sel.xpath("div[@class='gsc_1usr_photo']/a/@href").extract()[0]
             linkId = parse_qs(urlsplit(link).query)['user'][0]
+            print("Got Link:" + linkId)
             if linkId not in self.state['seen_users']:
                 self.state['seen_users'].append(linkId)
                 yield scrapy.Request(baseurl + link + "&cstart=0&pagesize=" + str(google_scholar_papers_page_size), callback=self.parse_person, dont_filter=True)
@@ -63,6 +64,7 @@ class DmozSpider(scrapy.Spider):
 
     def parse_person(self, response):
         item = DmozItem()
+        print ("Scraping Person:" + response.url)
         base = response.xpath("/html/body//div[@id='gsc_bdy']")
 
         baseInfo = base.xpath("div[@class='gsc_lcl']/div[@id='gsc_prf']")
@@ -168,7 +170,7 @@ class DmozSpider(scrapy.Spider):
     
     def parse_article(self, response):
         item = DmozyArticle()
-        
+        print ("Scraping Paper:" + response.url)
         base = response.xpath("/html/body/div[@id='gs_top']/div[@id='gs_bdy']/div[@id='gs_ccl']/div[@id='gsc_ccl']")
         
         try:
@@ -262,7 +264,7 @@ class DmozSpider(scrapy.Spider):
             cstart = parse_qs(urlsplit(response.url).query)['cstart'][0]
             newstart = str(int(cstart) + google_scholar_papers_page_size)
             yield scrapy.Request(response.url.replace('cstart=' + cstart, 'cstart=' + newstart),
-                           callback=self.parse_paper_list, dont_filter=True)
+                           callback=self.parse_paper_list, dont_filter=True, meta={"person": p})
 
 
 
