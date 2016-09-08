@@ -11,6 +11,8 @@ starturl = "https://scholar.google.com/citations?view_op=search_authors&mauthors
 starturl2 = "https://www.base-search.net/Search/Results?lookfor=Mohsen+Sharifi"
 baseurl = "https://scholar.google.com"
 
+google_scholar_papers_page_size = 20
+
 exporterfile = open("items.json",'wb')
 exporter = JsonItemExporter(exporterfile)
 exporter.start_exporting()
@@ -28,6 +30,9 @@ class DmozSpider(scrapy.Spider):
     name = "dmoz"
     allowed_domains = ["dmoz.org"]
     start_urls = [
+        starturl
+    ]
+    start_urls2 = [
         starturl2
     ]
 
@@ -42,7 +47,9 @@ class DmozSpider(scrapy.Spider):
         self.state['seen_papers2'] = []
 
         while (len(self.start_urls) > 0):
-            yield scrapy.Request(self.start_urls.pop(0), callback=self.parse_search2, dont_filter=True)
+            yield scrapy.Request(self.start_urls.pop(0), callback=self.parse, dont_filter=True)
+        while (len(self.start_urls2) > 0):
+            yield scrapy.Request(self.start_urls2.pop(0), callback=self.parse_search2, dont_filter=True)
 
 
     def parse(self, response):
@@ -51,7 +58,7 @@ class DmozSpider(scrapy.Spider):
             linkId = parse_qs(urlsplit(link).query)['user'][0]
             if linkId not in self.state['seen_users']:
                 self.state['seen_users'].append(linkId)
-                yield scrapy.Request(baseurl + link + "&cstart=0&pagesize=100", callback=self.parse_person, dont_filter=True)
+                yield scrapy.Request(baseurl + link + "&cstart=0&pagesize=" + str(google_scholar_papers_page_size), callback=self.parse_person, dont_filter=True)
     
 
     def parse_person(self, response):
@@ -145,7 +152,7 @@ class DmozSpider(scrapy.Spider):
 
         if not (base.xpath("div[@id='gsc_art']/form/div[@id='gsc_lwp']/div/button[@id='gsc_bpf_next'][@disabled]")):
             cstart = parse_qs(urlsplit(response.url).query)['cstart'][0]
-            newstart = str(int(cstart) + 100)
+            newstart = str(int(cstart) + google_scholar_papers_page_size)
             yield scrapy.Request(response.url.replace('cstart=' + cstart, 'cstart=' + newstart),
                            callback=self.parse_paper_list, dont_filter=True, meta={"person": p})
 
@@ -253,14 +260,13 @@ class DmozSpider(scrapy.Spider):
         if not (base.xpath("div[@id='gsc_art']/form/div[@id='gsc_lwp']/div/button[@id='gsc_bpf_next'][@disabled]")):
             print("Raftam safe baadi")
             cstart = parse_qs(urlsplit(response.url).query)['cstart'][0]
-            newstart = str(int(cstart) + 100)
+            newstart = str(int(cstart) + google_scholar_papers_page_size)
             yield scrapy.Request(response.url.replace('cstart=' + cstart, 'cstart=' + newstart),
                            callback=self.parse_paper_list, dont_filter=True)
 
 
 
     def parse_search2(self, response):
-        print "asd"
         base = response.xpath("/html/body/div[@id='Box1forIe']/div[@id='Box2forIe']")
 
         for i in base.xpath("div[@id='ResultsDrilldowns']/div[@id='ResultsBox']/form/div[@class='Results']"):
@@ -283,9 +289,9 @@ class DmozSpider(scrapy.Spider):
                     item['date'] = v
                 elif k == 'URL:':
                     item['link'] = v
-                elif k == 'Author:':
-                    print v
-
-            print item
+                #elif k == 'Author:':
+                #    print v
+            
+            print ("Scraped2 " + item['name'])
 
 
