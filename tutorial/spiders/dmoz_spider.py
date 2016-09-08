@@ -8,8 +8,9 @@ import models
 mongoengine.connect('kallemahi')
 
 starturl = "https://scholar.google.com/citations?view_op=search_authors&mauthors=mohsen+sharifi&hl=en&oi=ao"
-starturl2 = "https://www.base-search.net/Search/Results?lookfor=Mohsen+Sharifi"
+starturl2 = "https://www.base-search.net/Search/Results?lookfor=adel+torkaman+rahmani"
 baseurl = "https://scholar.google.com"
+baseurl2 = "https://www.base-search.net"
 
 google_scholar_papers_page_size = 20
 
@@ -46,8 +47,8 @@ class DmozSpider(scrapy.Spider):
         self.state['seen_users2'] = []
         self.state['seen_papers2'] = []
 
-        while (len(self.start_urls) > 0):
-            yield scrapy.Request(self.start_urls.pop(0), callback=self.parse, dont_filter=True)
+        # while (len(self.start_urls) > 0):
+        #     yield scrapy.Request(self.start_urls.pop(0), callback=self.parse, dont_filter=True)
         while (len(self.start_urls2) > 0):
             yield scrapy.Request(self.start_urls2.pop(0), callback=self.parse_search2, dont_filter=True)
 
@@ -272,26 +273,60 @@ class DmozSpider(scrapy.Spider):
         for i in base.xpath("div[@id='ResultsDrilldowns']/div[@id='ResultsBox']/form/div[@class='Results']"):
             item = DmozyArticle()
             item['itemtype'] = 'Paper'
-            item['name'] = i.xpath("h2/a/text()").extract()[0]
+            item['name'] = i.xpath("h2/a/text()").extract()[0].strip()
+            if item['name'] == 'Title not available':
+                continue
+
+            if item['name'] not in self.state['seen_papers2']:
+                self.state['seen_papers2'].append(item['name'])
+            else:
+                continue
+
             item['link'] = i.xpath("h2/a/@href").extract()[0]
             item['date'] = ""
             item['description'] = ""
             item['publisher'] = ""
             item['authors'] = []
 
-            for j in base.xpath("div[@class='ResultsContent']/div[@class='DottedLineLeftForIe']/div[@class='Metadata']/div"):
-                k = j.xpath("div[@class='ItemLeft_en']/text()").extract()[0]
-                v = j.xpath("div[@class='ItemRight_en']/text()").extract()[0]
+            for j in i.xpath("div[@class='ResultsContent']/div[@class='DottedLineLeftForIe']/div[@class='Metadata']/div[@class='Item']"):
+                try:
+                    k = j.xpath("div[@class='ItemLeft_en']/text()").extract()[0]
+                    v = j.xpath("div[@class='ItemRight_en']/text()").extract()[0]
+                except:
+                    continue
 
                 if k == 'Publisher:':
                     item['publisher'] = v
                 elif k == 'Year of Publication:':
                     item['date'] = v
-                elif k == 'URL:':
-                    item['link'] = v
-                #elif k == 'Author:':
-                #    print v
-            
-            print ("Scraped2 " + item['name'])
+                elif k == 'Author:':
+                    for p in j.xpath("div[@class='ItemRight_en']/div[@class='Hidden']/a"):
+                        n = p.xpath('text()').extract()[0].strip()
+                        l = p.xpath('@href').extract()[0]
+                        item['authors'].append(n)
+                        if n not in self.state['seen_users2']:
+                            self.state['seen_users2'].append(n)
+                            oo = models.Person.objects(name__iexact=n).first()
+                            if oo == None:
+                                o = models.Person(name=n)
+                                o.papers.append(item['name'])
+                                o.save()
+                                print('person2 added: ' + n)
+                            else:
+                                oo.papers.append(item['name'])
+                                oo.save()
+                            if 'script' not in l:
+                                yield scrapy.Request(baseurl2 + l, callback=self.parse_search2, dont_filter=True)
 
+            p = models.Paper(title=item['name'])
+            if (item['description']):
+                p.digest = item['description']
+            if (item['publisher']):
+                p.publisher = item['publisher']
+            if (item['link']):
+                p.content = item['link']
+            p.authors.extend([i.strip() for i in item['authors']])
+            p.save()
 
+            yield item
+            print ("Scraped2: " + item['name'])
