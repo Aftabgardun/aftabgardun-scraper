@@ -26,6 +26,10 @@ urls = [
         "https://scholar.google.com/citations?view_op=search_authors&mauthors=nasser+mozayyeni&hl=en&oi=ao",
         "https://scholar.google.com/citations?view_op=search_authors&mauthors=jahed&hl=en&oi=ao",
         "https://scholar.google.com/citations?view_op=search_authors&mauthors=saeid+parsa&hl=en&oi=ao"]
+        
+starturl = "https://scholar.google.com/citations?hl=en&view_op=search_authors&mauthors=abdollahi+azgomi"
+starturl = "https://scholar.google.com/citations?view_op=search_authors&mauthors=abdollahi+azgomi&hl=en&oi=ao"
+starturl = "https://scholar.google.com/citations?view_op=search_authors&mauthors=behrouz+minaei&hl=en&oi=ao"
 
 class DmozSpider(scrapy.Spider):
     name = "dmoz"
@@ -34,7 +38,7 @@ class DmozSpider(scrapy.Spider):
         starturl
     ]
     start_urls2 = [
-        starturl2
+        #starturl2
     ]
 
     def closed(self, reason):
@@ -47,8 +51,8 @@ class DmozSpider(scrapy.Spider):
         self.state['seen_users2'] = []
         self.state['seen_papers2'] = []
 
-        # while (len(self.start_urls) > 0):
-        #     yield scrapy.Request(self.start_urls.pop(0), callback=self.parse, dont_filter=True)
+        while (len(self.start_urls) > 0):
+             yield scrapy.Request(self.start_urls.pop(0), callback=self.parse, dont_filter=True)
         while (len(self.start_urls2) > 0):
             yield scrapy.Request(self.start_urls2.pop(0), callback=self.parse_search2, dont_filter=True)
 

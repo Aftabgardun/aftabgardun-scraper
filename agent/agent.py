@@ -136,13 +136,31 @@ for i in k:
     for j in ps:
         for k in j.papers:
             papers = models.PPaper.objects(title__iexact=k)
+            
+            if "azgom" in j.name.lower():
+                print(k)
             for p in papers:
                 u = Paper.objects(maindbid=str(p.id))
                 ok = False
-                for j in u:
-                    if (i.name.strip().lower() in [ppp.strip().lower() for ppp in j.authors]):
+                for jj in u:
+                    if "azgom" in j.name.lower():
+                        print(jj.title)
+                        print(jj.authors)
+                        
+                    if (i.name.strip().lower() in [ppp.strip().lower() for ppp in jj.authors]):
                         ok = True
                         break
+                    kk1 = i.name.strip().lower().split(' ')
+                    
+                    nk1 = "".join([lmk[0] for lmk in kk1[:len(kk1)-1] if lmk != ""] + [kk1[-1]])
+                    
+                    for ppp in jj.authors:
+                        kk2 = ppp.strip().lower().split(' ')
+                        nk2 = "".join([lmk[0] for lmk in kk2[:len(kk1)-1]] + [kk2[-1]])
+                        if nk1 == nk2:
+                            ok = True
+                            break
+                    
                 if (ok):
                     if (i not in p.authors):
                         p.authors.append(i)
@@ -151,4 +169,10 @@ for i in k:
                         print("Done " + i.name + " <=> " + p.title)
                     i.save()
                     p.save()
-                    
+
+#k = models.PPaper.objects()
+#for i in k:
+#    if (len(i.authors) == 0):
+#        papers = Paper.objects(title__iexact=i.title)
+#        for p in papers:
+#            print(p.authors)
